@@ -8,6 +8,8 @@ BRANCH_VERSION=
 MANAGE_NETWORK=
 UPGRADE_SYSTEM=
 
+OSE_USER=$USER
+
 if [ -f .env ]; then
     source .env
 fi
@@ -168,15 +170,15 @@ fi
 
 sudo pip install "$ANSIBLE_VERSION"
 
-sudo -u pi ansible localhost \
+sudo -u "$OSE_USER" ansible localhost \
     -m git \
-    -a "repo=$REPOSITORY dest=/home/pi/screenly version=$BRANCH force=no"
-cd /home/pi/screenly/ansible
+    -a "repo=$REPOSITORY dest=/home/$OSE_USER/screenly version=$BRANCH force=no"
+cd "/home/$OSE_USER/screenly/ansible"
 
 sudo -E ansible-playbook site.yml "${EXTRA_ARGS[@]}"
 
 # Pull down and install containers
-/home/pi/screenly/bin/upgrade_containers.sh
+"/home/$OSE_USER/screenly/bin/upgrade_containers.sh"
 
 sudo apt-get autoclean
 sudo apt-get clean
@@ -218,11 +220,11 @@ sudo find /usr/share/locale \
     ! -name 'locale.alias' \
     -exec rm -r {} \;
 
-sudo chown -R pi:pi /home/pi
+sudo chown -R $OSE_USER:$OSE_USER /home/$OSE_USER
 
 # Run sudo w/out password
 if [ ! -f /etc/sudoers.d/010_pi-nopasswd ]; then
-  echo "pi ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/010_pi-nopasswd > /dev/null
+  echo "$OSE_USER ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/010_pi-nopasswd > /dev/null
   sudo chmod 0440 /etc/sudoers.d/010_pi-nopasswd
 fi
 
@@ -235,8 +237,8 @@ check_defaultpw () {
         local VAR_CURRENTPISALT
         local VAR_CURRENTPIUSERPW
         local VAR_DEFAULTPIPW
-        VAR_CURRENTPISALT=$(sudo cat /etc/shadow | grep pi | awk -F '$' '{print $3}')
-        VAR_CURRENTPIUSERPW=$(sudo cat /etc/shadow | grep pi | awk -F ':' '{print $2}')
+        VAR_CURRENTPISALT=$(sudo cat /etc/shadow | grep $OSE_USER | awk -F '$' '{print $3}')
+        VAR_CURRENTPIUSERPW=$(sudo cat /etc/shadow | grep $OSE_USER | awk -F ':' '{print $2}')
         VAR_DEFAULTPIPW=$(mkpasswd -m sha-512 raspberry "$VAR_CURRENTPISALT")
 
         if [[ "$VAR_CURRENTPIUSERPW" == "$VAR_DEFAULTPIPW" ]]; then
