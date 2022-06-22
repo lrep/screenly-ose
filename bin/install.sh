@@ -147,7 +147,7 @@ sudo apt-get install -y  --no-install-recommends \
     libffi-dev \
     libssl-dev \
     python-dev \
-    python-pip \
+    python3-pip \
     python-setuptools \
     python-wheel \
     whois
